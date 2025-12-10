@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hash_algo": "sha256",
+  "chunk_size": 262144,
+  "total_size": 307200,
+  "filename": "large.bin",
+  "chunks": [
+    {"index": 0, "size": 262144, "hash": "1220ce025cafda7f72a18470aa22f1649d4d3bcba46d50da01a878e6191704844c89"},
+    {"index": 1, "size": 45056, "hash": "1220766bc7b10655d50b04b74641ae1ec967a8c2465104fead87215e07d04598b0fe"}
+  ]
+}

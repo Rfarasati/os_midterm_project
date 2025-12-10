@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "hash_algo": "sha256",
+  "chunk_size": 262144,
+  "total_size": 33,
+  "filename": "test.txt",
+  "chunks": [
+    {"index": 0, "size": 33, "hash": "1220c039ed50b42735fea1f36d1c859eee2d4ee6be9deef046407c0cf358ac096fad"}
+  ]
+}
