@@ -119,6 +119,21 @@ char* compute_multihash(const uint8_t* data, size_t len) {
 - `0x20` = 32 bytes (length of SHA-256)
 - Followed by hex-encoded hash
 
+### Algorithm Selection: SHA-256 vs BLAKE3
+
+The project specification suggested BLAKE3 as the hashing algorithm. However,
+this implementation uses **SHA-256** for the following reasons:
+
+1. **Availability**: SHA-256 is readily available in OpenSSL (libcrypto)
+2. **Simplicity**: No additional dependencies required
+3. **Security**: SHA-256 is cryptographically secure and widely trusted
+4. **Standards**: SHA-256 has established multihash code (0x12)
+5. **Project Scope**: For educational purposes, the choice of hash function
+   doesn't impact the core learning objectives (concurrency, IPC, thread management)
+
+The specification noted BLAKE3 as "suggested" (پیشنهادی), not mandatory,
+and explicitly mentioned it could be changed via environment variable.
+
 ### 3. Block Storage
 
 Blocks stored in hierarchical directory structure:
