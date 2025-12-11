@@ -33,11 +33,11 @@
 #define OP_ERROR         0xFF
 
 // Error codes
-#define E_BAD_CID       1
-#define E_NOT_FOUND     2
-#define E_HASH_MISMATCH 3
-#define E_BUSY          4
-#define E_PROTO         5
+#define E_BAD_CID       1    // Invalid CID format
+#define E_NOT_FOUND     2    // CID/resource not found
+#define E_HASH_MISMATCH 3    // Chunk hash verification failed
+#define E_BUSY          4    // Server busy/resource allocation failed
+#define E_PROTO         5    // Protocol violation (wrong opcode, wrong sequence)
 
 // Constants
 #define CHUNK_SIZE (256 * 1024)  // 256KB
@@ -175,6 +175,9 @@ char* compute_hash(const uint8_t* data, size_t len);
 char* compute_multihash(const uint8_t* data, size_t len);
 char* compute_cid(const char* manifest_json);
 char* base32_encode(const uint8_t* data, size_t len);
+
+// Validation functions
+int is_valid_cid(const char* cid);
 
 static const char* g_sock_path = NULL;
 
@@ -531,6 +534,8 @@ char* build_manifest(upload_session_t* session) {
 }
 
 // Save manifest atomically
+// NOTE: This is safe for concurrent calls with DIFFERENT CIDs.
+// For the SAME CID, the last writer wins (which is acceptable).
 int save_manifest(const char* cid, const char* json) {
     char tmp_path[512];
     char final_path[512];
@@ -865,6 +870,24 @@ void send_error(int fd, int code, const char* message) {
 }
 
 // ============================================================================
+// VALIDATION FUNCTIONS
+// ============================================================================
+
+// Validate CID format (basic check)
+int is_valid_cid(const char* cid) {
+    if (!cid || strlen(cid) == 0) return 0;
+    if (strlen(cid) > 100) return 0;  // Reasonable max length
+
+    // Check for valid base32 characters (lowercase a-z, 2-7)
+    for (const char* p = cid; *p; p++) {
+        if (!((*p >= 'a' && *p <= 'z') || (*p >= '2' && *p <= '7'))) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+// ============================================================================
 // CONNECTION HANDLER - COMPLETE UPLOAD/DOWNLOAD
 // ============================================================================
 
@@ -925,11 +948,21 @@ void* handle_connection(void* arg) {
                 break;
             }
 
+            // LOCK before accessing/modifying session
+            pthread_mutex_lock(&upload_session->lock);
+
             // Expand chunk array if needed
             if (upload_session->chunk_count >= upload_session->chunk_capacity) {
                 upload_session->chunk_capacity *= 2;
-                upload_session->chunks = realloc(upload_session->chunks,
+                chunk_info_t* new_chunks = realloc(upload_session->chunks,
                     upload_session->chunk_capacity * sizeof(chunk_info_t));
+                if (!new_chunks) {
+                    pthread_mutex_unlock(&upload_session->lock);
+                    send_error(cfd, E_BUSY, "Memory allocation failed");
+                    free(payload);
+                    break;
+                }
+                upload_session->chunks = new_chunks;
             }
 
             // Get chunk index (current count)
@@ -941,7 +974,9 @@ void* handle_connection(void* arg) {
             // Update total size
             upload_session->total_size += len;
 
-            // Create work item
+            pthread_mutex_unlock(&upload_session->lock);
+
+            // Create work item (outside lock)
             work_item_t work;
             work.type = WORK_HASH_AND_SAVE;
             work.session = upload_session;
@@ -1030,6 +1065,15 @@ void* handle_connection(void* arg) {
             printf("[ENGINE] DOWNLOAD_START: cid=\"%s\"\n", cid);
             fflush(stdout);
 
+            // Validate CID format
+            if (!is_valid_cid(cid)) {
+                printf("[ENGINE] ERROR: Invalid CID format\n");
+                fflush(stdout);
+                send_error(cfd, E_BAD_CID, "Invalid CID format");
+                free(payload);
+                continue;
+            }
+
             // Create download session
             download_session_t* download_session = download_session_create(cid);
             if (!download_session) {
@@ -1089,6 +1133,13 @@ void* handle_connection(void* arg) {
             fflush(stdout);
 
             download_session_destroy(download_session);
+            } else {
+            // Unknown opcode
+            printf("[ENGINE] ERROR: Unknown opcode 0x%02x\n", op);
+            fflush(stdout);
+            send_error(cfd, E_PROTO, "Unknown operation code");
+            free(payload);
+            break;
         }
 
         free(payload);
