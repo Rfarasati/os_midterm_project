@@ -13,7 +13,7 @@ st.set_page_config(
 API_BASE = "http://127.0.0.1:9000"
 
 st.title("📦 Content-Addressed Storage System")
-st.markdown("*IPFS-like distributed storage with deduplication*")
+st.markdown("*IPFS-like distributed storage*")
 st.markdown("🔗 Connected to: `WSL Ubuntu (127.0.0.1:9000)`")
 
 # Check connection
