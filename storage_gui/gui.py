@@ -207,21 +207,6 @@ with tab3:
 
     with col1:
         st.subheader("🏗️ Architecture")
-        st.markdown("""
-```
-        Windows PC (You are here)
-        ├─ Streamlit GUI (gui.py)
-        └─ HTTP Requests → 127.0.0.1:9000
-        
-        WSL Ubuntu
-        ├─ C Engine (c_engine)
-        │  ├─ Thread pool (8 workers)
-        │  ├─ Unix socket (/tmp/cengine.sock)
-        │  └─ Block storage
-        └─ Python Gateway (main.py)
-           └─ HTTP Server (port 9000)
-```
-        """)
 
         st.subheader("📋 Features")
         st.markdown("""
