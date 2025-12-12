@@ -206,8 +206,6 @@ with tab3:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("🏗️ Architecture")
-
         st.subheader("📋 Features")
         st.markdown("""
         - ✅ Content-addressed storage
