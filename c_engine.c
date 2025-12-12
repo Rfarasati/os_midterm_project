@@ -171,7 +171,6 @@ void download_session_destroy(download_session_t* session);
 char* load_manifest(const char* cid);
 
 // Hashing functions
-char* compute_hash(const uint8_t* data, size_t len);
 char* compute_multihash(const uint8_t* data, size_t len);
 char* compute_cid(const char* manifest_json);
 char* base32_encode(const uint8_t* data, size_t len);
@@ -214,22 +213,6 @@ int mkdirs(const char* path) {
 // ============================================================================
 // HASHING AND CID FUNCTIONS
 // ============================================================================
-
-// Compute SHA256 hash and return as hex string
-char* compute_hash(const uint8_t* data, size_t len) {
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256(data, len, hash);
-
-    char* hex = malloc(SHA256_DIGEST_LENGTH * 2 + 1);
-    if (!hex) return NULL;
-
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-        sprintf(hex + (i * 2), "%02x", hash[i]);
-    }
-    hex[SHA256_DIGEST_LENGTH * 2] = '\0';
-
-    return hex;
-}
 
 // Compute multihash: prefix (0x1220 for sha256) + hash
 char* compute_multihash(const uint8_t* data, size_t len) {
