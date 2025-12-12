@@ -517,8 +517,6 @@ char* build_manifest(upload_session_t* session) {
 }
 
 // Save manifest atomically
-// NOTE: This is safe for concurrent calls with DIFFERENT CIDs.
-// For the SAME CID, the last writer wins (which is acceptable).
 int save_manifest(const char* cid, const char* json) {
     char tmp_path[512];
     char final_path[512];
@@ -677,7 +675,6 @@ void download_session_destroy(download_session_t* session) {
 // ============================================================================
 
 // Get block file path from multihash
-// Example: "1220abcd..." -> "blocks/ab/cd/1220abcd..."
 char* get_block_path(const char* multihash) {
     if (strlen(multihash) < 8) return NULL;
 
@@ -1116,15 +1113,16 @@ void* handle_connection(void* arg) {
             fflush(stdout);
 
             download_session_destroy(download_session);
-            } else {
-            // Unknown opcode
-            printf("[ENGINE] ERROR: Unknown opcode 0x%02x\n", op);
-            fflush(stdout);
-            send_error(cfd, E_PROTO, "Unknown operation code");
-            free(payload);
-            break;
         }
 
+        else {
+        // Unknown opcode
+        printf("[ENGINE] ERROR: Unknown opcode 0x%02x\n", op);
+        fflush(stdout);
+        send_error(cfd, E_PROTO, "Unknown operation code");
+        free(payload);
+        break;
+        }
         free(payload);
     }
 
