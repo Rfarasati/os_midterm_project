@@ -1,0 +1,8 @@
+c_engine
+test_basic
+blocks/
+manifests/
+*.o
+cmake-build-*/
+large.bin
+test.txt
