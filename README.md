@@ -1,6 +1,6 @@
 # IPFS-lite — Content-Addressed File Storage
 
-> **Course project** — Operating Systems, Ferdowsi University of Mashhad, Fall 2025
+> **Course project** — Operating Systems, Ferdowsi University of Mashhad, Fall 2025 (5th semester)
 
 A small clone of the core idea behind [IPFS](https://ipfs.tech/): files are stored and
 retrieved by the **hash of their content** (a CID) rather than by a file path, with chunking
